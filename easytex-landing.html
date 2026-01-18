@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EasyTeX — The Symbolic Workspace for Serious Mathematics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --black: #0d0d0d;
+      --white: #fafaf8;
+      --cream: #f5f4f0;
+      --stone: #e8e6e1;
+      --warm-gray: #9a9590;
+      --charcoal: #3d3a36;
+      --ink: #1a1917;
+      --accent: #0d9488;
+      --accent-dark: #0a7569;
+      --accent-light: #14b8a6;
+      --serif: 'Cormorant Garamond', Georgia, serif;
+      --mono: 'IBM Plex Mono', 'Consolas', monospace;
+      --sans: 'DM Sans', system-ui, sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--white);
+      color: var(--ink);
+      font-size: 17px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* Noise texture overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* Navigation */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 20px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--white);
+      border-bottom: 1px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    nav.scrolled {
+      border-bottom-color: var(--stone);
+      box-shadow: 0 1px 20px rgba(0,0,0,0.04);
+    }
+
+    .logo {
+      font-family: var(--serif);
+      font-size: 26px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      text-decoration: none;
+      display: flex;
+      align-items: baseline;
+      gap: 0;
+    }
+
+    .logo-easy {
+      color: var(--accent);
+    }
+
+    .logo-tex {
+      font-style: italic;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+    }
+
+    .nav-links a {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--charcoal);
+      text-decoration: none;
+      letter-spacing: 0.01em;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--ink);
+    }
+
+    .nav-cta {
+      background: var(--ink);
+      color: var(--white) !important;
+      padding: 10px 22px;
+      border-radius: 6px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .nav-cta:hover {
+      background: var(--charcoal);
+      transform: translateY(-1px);
+    }
+
+    /* Hero */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 140px 48px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(var(--stone) 1px, transparent 1px),
+        linear-gradient(90deg, var(--stone) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.5;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 20%, transparent 70%);
+    }
+
+    .hero-content {
+      max-width: 900px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--mono);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--warm-gray);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      width: 40px;
+      height: 1px;
+      background: var(--warm-gray);
+    }
+
+    .hero h1 {
+      font-family: var(--serif);
+      font-size: clamp(48px, 8vw, 88px);
+      font-weight: 400;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+      margin-bottom: 32px;
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero-sub {
+      font-size: 20px;
+      color: var(--charcoal);
+      max-width: 600px;
+      line-height: 1.7;
+      margin-bottom: 48px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 32px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--white);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(13, 148, 136, 0.25);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--ink);
+      border: 1.5px solid var(--stone);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--charcoal);
+      background: var(--cream);
+    }
+
+    .hero-proof {
+      margin-top: 80px;
+      padding-top: 40px;
+      border-top: 1px solid var(--stone);
+      display: flex;
+      gap: 48px;
+      flex-wrap: wrap;
+    }
+
+    .proof-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .proof-number {
+      font-family: var(--serif);
+      font-size: 36px;
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+    }
+
+    .proof-label {
+      font-size: 13px;
+      color: var(--warm-gray);
+      margin-top: 4px;
+    }
+
+    /* Demo Section */
+    .demo-section {
+      padding: 120px 48px;
+      background: var(--cream);
+      position: relative;
+    }
+
+    .demo-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--warm-gray);
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-family: var(--serif);
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 400;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      max-width: 700px;
+      margin-bottom: 64px;
+    }
+
+    .demo-window {
+      background: var(--white);
+      border-radius: 16px;
+      box-shadow: 
+        0 1px 3px rgba(0,0,0,0.04),
+        0 8px 40px rgba(0,0,0,0.06);
+      overflow: hidden;
+      border: 1px solid var(--stone);
+    }
+
+    .demo-titlebar {
+      background: var(--ink);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .demo-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--charcoal);
+    }
+
+    .demo-dot:nth-child(1) { background: #ff5f57; }
+    .demo-dot:nth-child(2) { background: #febc2e; }
+    .demo-dot:nth-child(3) { background: #28c840; }
+
+    .demo-title {
+      flex: 1;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--warm-gray);
+    }
+
+    .demo-content {
+      padding: 32px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      min-height: 400px;
+    }
+
+    .demo-input {
+      background: var(--cream);
+      border-radius: 12px;
+      padding: 24px;
+      font-family: var(--mono);
+      font-size: 14px;
+      color: var(--ink);
+      border: 1px solid var(--stone);
+    }
+
+    .demo-input-line {
+      margin-bottom: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .demo-prompt {
+      color: var(--accent);
+      user-select: none;
+    }
+
+    .demo-code {
+      color: var(--ink);
+    }
+
+    .demo-comment {
+      color: var(--warm-gray);
+      font-style: italic;
+    }
+
+    .demo-output {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .demo-result {
+      background: var(--cream);
+      border-radius: 12px;
+      padding: 24px;
+      border: 1px solid var(--stone);
+    }
+
+    .demo-result-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--warm-gray);
+      margin-bottom: 12px;
+    }
+
+    .demo-math {
+      font-family: var(--serif);
+      font-size: 28px;
+      font-style: italic;
+      color: var(--ink);
+    }
+
+    .demo-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .demo-step {
+      display: flex;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--white);
+      border-radius: 8px;
+      border: 1px solid var(--stone);
+      font-size: 13px;
+    }
+
+    .demo-step-num {
+      font-family: var(--mono);
+      color: var(--warm-gray);
+      font-size: 11px;
+    }
+
+    .demo-step-rule {
+      color: var(--accent);
+      font-weight: 500;
+      min-width: 100px;
+    }
+
+    .demo-step-expr {
+      font-family: var(--serif);
+      font-style: italic;
+      color: var(--ink);
+    }
+
+    /* Features */
+    .features {
+      padding: 140px 48px;
+      background: var(--white);
+    }
+
+    .features-header {
+      max-width: 600px;
+      margin-bottom: 80px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 48px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .feature {
+      padding: 40px;
+      background: var(--cream);
+      border-radius: 16px;
+      border: 1px solid var(--stone);
+      transition: all 0.3s ease;
+    }
+
+    .feature:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.06);
+    }
+
+    .feature-icon {
+      width: 56px;
+      height: 56px;
+      background: var(--white);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--serif);
+      font-size: 28px;
+      font-style: italic;
+      color: var(--accent);
+      margin-bottom: 24px;
+      border: 1px solid var(--stone);
+    }
+
+    .feature h3 {
+      font-family: var(--serif);
+      font-size: 24px;
+      font-weight: 500;
+      color: var(--ink);
+      margin-bottom: 12px;
+      letter-spacing: -0.01em;
+    }
+
+    .feature p {
+      font-size: 15px;
+      color: var(--charcoal);
+      line-height: 1.7;
+    }
+
+    /* Philosophy */
+    .philosophy {
+      padding: 140px 48px;
+      background: var(--ink);
+      color: var(--white);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .philosophy::before {
+      content: '';
+      position: absolute;
+      top: -200px;
+      right: -200px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(13, 148, 136, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .philosophy-container {
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .philosophy .section-label {
+      color: var(--warm-gray);
+    }
+
+    .philosophy .section-title {
+      color: var(--white);
+      margin-bottom: 48px;
+    }
+
+    .philosophy-quote {
+      font-family: var(--serif);
+      font-size: clamp(24px, 4vw, 36px);
+      font-weight: 400;
+      font-style: italic;
+      line-height: 1.5;
+      color: var(--cream);
+      margin-bottom: 32px;
+      padding-left: 32px;
+      border-left: 3px solid var(--accent);
+    }
+
+    .philosophy-text {
+      font-size: 18px;
+      color: var(--warm-gray);
+      line-height: 1.8;
+      max-width: 700px;
+    }
+
+    .philosophy-text + .philosophy-text {
+      margin-top: 24px;
+    }
+
+    .principles {
+      margin-top: 80px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 32px;
+    }
+
+    .principle {
+      padding: 32px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .principle-number {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent-light);
+      margin-bottom: 12px;
+    }
+
+    .principle h4 {
+      font-family: var(--serif);
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+
+    .principle p {
+      font-size: 14px;
+      color: var(--warm-gray);
+      line-height: 1.6;
+    }
+
+    /* Pricing */
+    .pricing {
+      padding: 140px 48px;
+      background: var(--cream);
+    }
+
+    .pricing-header {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 80px;
+    }
+
+    .pricing-header .section-title {
+      margin-bottom: 16px;
+    }
+
+    .pricing-sub {
+      font-size: 18px;
+      color: var(--charcoal);
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .pricing-card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 40px;
+      border: 1px solid var(--stone);
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s;
+    }
+
+    .pricing-card.featured {
+      border-color: var(--accent);
+      box-shadow: 0 12px 40px rgba(13, 148, 136, 0.12);
+      transform: scale(1.02);
+    }
+
+    .pricing-tier {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--warm-gray);
+      margin-bottom: 8px;
+    }
+
+    .pricing-name {
+      font-family: var(--serif);
+      font-size: 28px;
+      font-weight: 500;
+      color: var(--ink);
+      margin-bottom: 16px;
+    }
+
+    .pricing-price {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+
+    .pricing-amount {
+      font-family: var(--serif);
+      font-size: 48px;
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+    }
+
+    .pricing-period {
+      font-size: 14px;
+      color: var(--warm-gray);
+    }
+
+    .pricing-desc {
+      font-size: 14px;
+      color: var(--charcoal);
+      margin-bottom: 32px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid var(--stone);
+    }
+
+    .pricing-features {
+      list-style: none;
+      margin-bottom: 32px;
+      flex: 1;
+    }
+
+    .pricing-features li {
+      font-size: 14px;
+      color: var(--charcoal);
+      padding: 8px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .pricing-features li::before {
+      content: '✓';
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .pricing-card .btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    /* CTA */
+    .cta {
+      padding: 140px 48px;
+      background: var(--white);
+      text-align: center;
+    }
+
+    .cta-container {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .cta .section-title {
+      margin: 0 auto 24px;
+    }
+
+    .cta-text {
+      font-size: 18px;
+      color: var(--charcoal);
+      margin-bottom: 40px;
+    }
+
+    .cta-form {
+      display: flex;
+      gap: 12px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .cta-input {
+      flex: 1;
+      padding: 16px 20px;
+      font-size: 15px;
+      font-family: var(--sans);
+      border: 1.5px solid var(--stone);
+      border-radius: 8px;
+      background: var(--cream);
+      color: var(--ink);
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .cta-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+    }
+
+    .cta-input::placeholder {
+      color: var(--warm-gray);
+    }
+
+    /* Footer */
+    footer {
+      padding: 60px 48px;
+      background: var(--ink);
+      color: var(--warm-gray);
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 32px;
+    }
+
+    .footer-logo {
+      font-family: var(--serif);
+      font-size: 22px;
+      color: var(--white);
+    }
+
+    .footer-logo .easy {
+      color: var(--accent-light);
+    }
+
+    .footer-logo .tex {
+      font-style: italic;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 32px;
+    }
+
+    .footer-links a {
+      font-size: 14px;
+      color: var(--warm-gray);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: var(--white);
+    }
+
+    .footer-copy {
+      font-size: 13px;
+    }
+
+    /* Animations */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero-content > * {
+      animation: fadeUp 0.8s ease-out backwards;
+    }
+
+    .hero-eyebrow { animation-delay: 0.1s; }
+    .hero h1 { animation-delay: 0.2s; }
+    .hero-sub { animation-delay: 0.3s; }
+    .hero-actions { animation-delay: 0.4s; }
+    .hero-proof { animation-delay: 0.5s; }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .features-grid,
+      .pricing-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .demo-content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      nav {
+        padding: 16px 24px;
+      }
+      
+      .nav-links {
+        display: none;
+      }
+      
+      .hero,
+      .demo-section,
+      .features,
+      .philosophy,
+      .pricing,
+      .cta {
+        padding-left: 24px;
+        padding-right: 24px;
+      }
+      
+      .features-grid,
+      .pricing-grid,
+      .principles {
+        grid-template-columns: 1fr;
+      }
+      
+      .pricing-card.featured {
+        transform: none;
+      }
+      
+      .hero-proof {
+        gap: 32px;
+      }
+      
+      .cta-form {
+        flex-direction: column;
+      }
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+      
+      html {
+        scroll-behavior: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav id="nav">
+    <a href="#" class="logo">
+      <span class="logo-easy">Easy</span><span class="logo-tex">TeX</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#philosophy">Philosophy</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#" class="nav-cta">Get Early Access</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-grid"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow">Symbolic workspace for mathematicians</div>
+      <h1>Mathematics<br>made <em>easy</em></h1>
+      <p class="hero-sub">
+        A LaTeX-native workspace that thinks like you do. Transparent derivations, 
+        expression-first design, and zero hand-holding. Built for researchers who 
+        refuse to compromise.
+      </p>
+      <div class="hero-actions">
+        <a href="#" class="btn btn-primary">
+          Request Early Access
+          <span>→</span>
+        </a>
+        <a href="#demo" class="btn btn-secondary">
+          See it in action
+        </a>
+      </div>
+      <div class="hero-proof">
+        <div class="proof-item">
+          <div class="proof-number">2,400+</div>
+          <div class="proof-label">Researchers on waitlist</div>
+        </div>
+        <div class="proof-item">
+          <div class="proof-number">47</div>
+          <div class="proof-label">Universities represented</div>
+        </div>
+        <div class="proof-item">
+          <div class="proof-number">&lt;50ms</div>
+          <div class="proof-label">Parse latency</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Demo -->
+  <section class="demo-section" id="demo">
+    <div class="demo-container">
+      <div class="section-label">Live workspace</div>
+      <h2 class="section-title">Write mathematics the way you think it</h2>
+      <div class="demo-window">
+        <div class="demo-titlebar">
+          <div class="demo-dot"></div>
+          <div class="demo-dot"></div>
+          <div class="demo-dot"></div>
+          <div class="demo-title">easytex — workspace.etx</div>
+        </div>
+        <div class="demo-content">
+          <div class="demo-input">
+            <div class="demo-input-line">
+              <span class="demo-prompt">[1]</span>
+              <span class="demo-code">f := x^3 - 2x + 1</span>
+            </div>
+            <div class="demo-input-line">
+              <span class="demo-prompt">[2]</span>
+              <span class="demo-code">\int_0^\infty e^{-x^2} dx</span>
+            </div>
+            <div class="demo-input-line">
+              <span class="demo-prompt">[3]</span>
+              <span class="demo-code">diff(f, x)</span>
+            </div>
+            <div class="demo-input-line">
+              <span class="demo-prompt">[4]</span>
+              <span class="demo-code demo-comment"># Assumptions: x ∈ ℝ, x &gt; 0</span>
+            </div>
+          </div>
+          <div class="demo-output">
+            <div class="demo-result">
+              <div class="demo-result-label">Result</div>
+              <div class="demo-math">∫₀^∞ e^{-x²} dx = √π / 2</div>
+            </div>
+            <div class="demo-steps">
+              <div class="demo-step">
+                <span class="demo-step-num">①</span>
+                <span class="demo-step-rule">Substitution</span>
+                <span class="demo-step-expr">u = x² → ½∫ u^{-½} e^{-u} du</span>
+              </div>
+              <div class="demo-step">
+                <span class="demo-step-num">②</span>
+                <span class="demo-step-rule">Gamma</span>
+                <span class="demo-step-expr">= ½ Γ(½)</span>
+              </div>
+              <div class="demo-step">
+                <span class="demo-step-num">③</span>
+                <span class="demo-step-rule">Known</span>
+                <span class="demo-step-expr">= ½ · √π = √π/2</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features" id="features">
+    <div class="features-header">
+      <div class="section-label">Why EasyTeX</div>
+      <h2 class="section-title">Designed around how mathematicians actually work</h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature">
+        <div class="feature-icon">∂</div>
+        <h3>LaTeX-Native Input</h3>
+        <p>Type expressions directly in LaTeX. No palettes, no clicking symbols, no modal dialogs. Your muscle memory works here.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">⊢</div>
+        <h3>Transparent Derivations</h3>
+        <p>Every step shown. Every assumption explicit. Toggle between full derivation, condensed form, or final result. No black boxes.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">⎇</div>
+        <h3>Branching History</h3>
+        <p>Git for reasoning. Branch computations, compare derivation paths, and never lose an exploratory tangent again.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">≡</div>
+        <h3>Expression-Centric</h3>
+        <p>Expressions are first-class objects. Manipulate, transform, compare, version. No forms. No wizards. Just math.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">⌘</div>
+        <h3>Keyboard-First</h3>
+        <p>Everything reachable via keyboard. Vim-style navigation. Custom keybindings. Command palette. Think faster than GUIs allow.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">∈</div>
+        <h3>Explicit Assumptions</h3>
+        <p>Domain, continuity, ordering—always visible. Silent assumptions destroy trust. We never hide the context.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Philosophy -->
+  <section class="philosophy" id="philosophy">
+    <div class="philosophy-container">
+      <div class="section-label">Our philosophy</div>
+      <h2 class="section-title">Built by mathematicians who got tired of bad tools</h2>
+      <blockquote class="philosophy-quote">
+        "Mathematicians distrust black boxes. Any tool that hides the math isn't a tool—it's an obstacle."
+      </blockquote>
+      <p class="philosophy-text">
+        We built EasyTeX because every existing tool fails in the same way: they prioritize 
+        accessibility over power, polish over transparency, and features over composability.
+      </p>
+      <p class="philosophy-text">
+        The result is software that treats mathematicians like beginners who need hand-holding. 
+        We think you deserve better. We think you deserve tools that respect your intelligence.
+      </p>
+      <div class="principles">
+        <div class="principle">
+          <div class="principle-number">01</div>
+          <h4>Transparency over automation</h4>
+          <p>Show intermediate steps. Show assumptions. Show branching cases. Never hide the math.</p>
+        </div>
+        <div class="principle">
+          <div class="principle-number">02</div>
+          <h4>Composability over features</h4>
+          <p>Small, orthogonal primitives. Define, transform, prove, visualize, export. Build your own abstractions.</p>
+        </div>
+        <div class="principle">
+          <div class="principle-number">03</div>
+          <h4>Density over decoration</h4>
+          <p>If it feels like a research paper, we're doing it right. Semantic density. No gradients. No shadows.</p>
+        </div>
+        <div class="principle">
+          <div class="principle-number">04</div>
+          <h4>Precision over friendliness</h4>
+          <p>Precise language. Formal terminology. Explicit error messages. We respect your expertise.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section class="pricing" id="pricing">
+    <div class="pricing-header">
+      <div class="section-label">Pricing</div>
+      <h2 class="section-title">Simple, honest pricing</h2>
+      <p class="pricing-sub">No feature gates. No upsells. Just the tools you need.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="pricing-tier">For individuals</div>
+        <div class="pricing-name">Researcher</div>
+        <div class="pricing-price">
+          <span class="pricing-amount">$0</span>
+          <span class="pricing-period">/ forever</span>
+        </div>
+        <p class="pricing-desc">Full workspace for personal research and exploration.</p>
+        <ul class="pricing-features">
+          <li>Unlimited expressions</li>
+          <li>Full derivation history</li>
+          <li>LaTeX export</li>
+          <li>Local storage</li>
+          <li>Community support</li>
+        </ul>
+        <a href="#" class="btn btn-secondary">Get started free</a>
+      </div>
+      <div class="pricing-card featured">
+        <div class="pricing-tier">For teams</div>
+        <div class="pricing-name">Department</div>
+        <div class="pricing-price">
+          <span class="pricing-amount">$12</span>
+          <span class="pricing-period">/ user / month</span>
+        </div>
+        <p class="pricing-desc">Collaboration features for research groups and departments.</p>
+        <ul class="pricing-features">
+          <li>Everything in Researcher</li>
+          <li>Shared workspaces</li>
+          <li>Real-time collaboration</li>
+          <li>Cloud sync</li>
+          <li>Priority support</li>
+          <li>SSO & admin controls</li>
+        </ul>
+        <a href="#" class="btn btn-primary">Request access</a>
+      </div>
+      <div class="pricing-card">
+        <div class="pricing-tier">For institutions</div>
+        <div class="pricing-name">University</div>
+        <div class="pricing-price">
+          <span class="pricing-amount">Custom</span>
+        </div>
+        <p class="pricing-desc">Enterprise deployment with LMS integration and support.</p>
+        <ul class="pricing-features">
+          <li>Everything in Department</li>
+          <li>LMS integration</li>
+          <li>On-premise option</li>
+          <li>Custom training</li>
+          <li>Dedicated support</li>
+          <li>SLA guarantees</li>
+        </ul>
+        <a href="#" class="btn btn-secondary">Contact sales</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <div class="cta-container">
+      <div class="section-label">Early access</div>
+      <h2 class="section-title">Join the waitlist</h2>
+      <p class="cta-text">
+        We're onboarding researchers from the waitlist every week. 
+        Get early access and help shape the future of mathematical software.
+      </p>
+      <form class="cta-form" onsubmit="event.preventDefault(); alert('Thanks! We\'ll be in touch.');">
+        <input type="email" class="cta-input" placeholder="you@university.edu" required>
+        <button type="submit" class="btn btn-primary">Join waitlist</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-logo"><span class="easy">Easy</span><span class="tex">TeX</span></div>
+      <div class="footer-links">
+        <a href="#">Documentation</a>
+        <a href="#">GitHub</a>
+        <a href="#">Twitter</a>
+        <a href="#">Contact</a>
+      </div>
+      <div class="footer-copy">© 2026 EasyTeX. Built for mathematicians.</div>
+    </div>
+  </footer>
+
+  <script>
+    // Scroll-based nav styling
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) {
+        nav.classList.add('scrolled');
+      } else {
+        nav.classList.remove('scrolled');
+      }
+    });
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

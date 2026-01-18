@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ℳathesis — Symbolic Workspace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+  <style>
+    :root {
+      /* Light theme - warm neutral (default) */
+      --bg-primary: #faf9f7;
+      --bg-secondary: #f5f4f1;
+      --bg-tertiary: #eceae6;
+      --bg-hover: #e5e3de;
+      --border: #d4d1ca;
+      --border-subtle: #e0ded8;
+      --text-primary: #1a1918;
+      --text-secondary: #4a4845;
+      --text-muted: #6b6965;
+      --accent: #2563eb;
+      --accent-dim: #2563eb15;
+      --accent-text: #1d4ed8;
+      --success: #047857;
+      --warning: #b45309;
+      --error: #b91c1c;
+      --focus-ring: #2563eb40;
+      
+      /* Semantic colors - muted for accessibility */
+      --math-primary: #1e40af;
+      --math-secondary: #065f46;
+      --math-tertiary: #92400e;
+      --math-quaternary: #5b21b6;
+    }
+
+    /* Dark theme */
+    [data-theme="dark"] {
+      --bg-primary: #1c1b1a;
+      --bg-secondary: #252422;
+      --bg-tertiary: #2e2c2a;
+      --bg-hover: #3a3836;
+      --border: #4a4744;
+      --border-subtle: #3a3836;
+      --text-primary: #f0efed;
+      --text-secondary: #b8b5b0;
+      --text-muted: #8a8680;
+      --accent: #60a5fa;
+      --accent-dim: #60a5fa20;
+      --accent-text: #93c5fd;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --error: #f87171;
+      --focus-ring: #60a5fa40;
+      
+      --math-primary: #93c5fd;
+      --math-secondary: #6ee7b7;
+      --math-tertiary: #fcd34d;
+      --math-quaternary: #c4b5fd;
+    }
+
+    /* High contrast mode */
+    [data-theme="high-contrast"] {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8f8f8;
+      --bg-tertiary: #f0f0f0;
+      --bg-hover: #e8e8e8;
+      --border: #767676;
+      --border-subtle: #a0a0a0;
+      --text-primary: #000000;
+      --text-secondary: #1a1a1a;
+      --text-muted: #404040;
+      --accent: #0050a0;
+      --accent-dim: #0050a020;
+      --accent-text: #003870;
+      --success: #006030;
+      --warning: #805000;
+      --error: #a00000;
+      --focus-ring: #0050a060;
+      
+      --math-primary: #0050a0;
+      --math-secondary: #006030;
+      --math-tertiary: #805000;
+      --math-quaternary: #5a1a90;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-mono);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.6;
+      --font-serif: 'EB Garamond', 'Times New Roman', serif;
+      --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+    }
+
+    /* Skip link for keyboard nav */
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 0;
+      background: var(--accent);
+      color: white;
+      padding: 8px 16px;
+      z-index: 1000;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .skip-link:focus {
+      top: 0;
+    }
+
+    /* Layout */
+    .app {
+      display: grid;
+      grid-template-columns: 260px 1fr 300px;
+      grid-template-rows: 48px 1fr 36px;
+      height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      grid-column: 1 / -1;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 24px;
+    }
+
+    .logo {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-symbol {
+      color: var(--accent-text);
+      font-style: italic;
+    }
+
+    .command-palette {
+      flex: 1;
+      max-width: 500px;
+      position: relative;
+    }
+
+    .command-input {
+      width: 100%;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px 8px 36px;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .command-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    .command-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .command-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .kbd {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
+      align-items: center;
+    }
+
+    .theme-toggle {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 10px;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .theme-toggle:hover {
+      background: var(--bg-hover);
+      border-color: var(--text-muted);
+    }
+
+    .theme-toggle:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .header-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 12px;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .header-btn:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+      border-color: var(--text-muted);
+    }
+
+    .header-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-section {
+      padding: 14px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .sidebar-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .env-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .env-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.1s;
+      border: 1px solid transparent;
+    }
+
+    .env-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .env-item:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+    }
+
+    .env-item.active {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+    }
+
+    .env-symbol {
+      font-family: var(--font-serif);
+      font-size: 16px;
+      font-style: italic;
+      width: 24px;
+      color: var(--math-primary);
+      text-align: center;
+    }
+
+    .env-name {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .env-value {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .assumptions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .assumption {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      padding: 8px 10px;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+      border-left: 3px solid var(--math-tertiary);
+    }
+
+    .assumption-toggle {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 2px solid var(--border);
+      background: var(--bg-primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+
+    .assumption-toggle:hover {
+      border-color: var(--accent);
+    }
+
+    .assumption-toggle:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .assumption-toggle.checked {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .assumption-toggle.checked::after {
+      content: '✓';
+      font-size: 11px;
+      color: white;
+      font-weight: 600;
+    }
+
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 14px;
+    }
+
+    .history-item {
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      margin-bottom: 6px;
+      transition: all 0.1s;
+    }
+
+    .history-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .history-item:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+    }
+
+    .history-item.branch {
+      border-left-color: var(--math-quaternary);
+    }
+
+    .history-time {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .history-expr {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* Main workspace */
+    .workspace {
+      background: var(--bg-primary);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .cells {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px 36px;
+    }
+
+    .cell {
+      margin-bottom: 28px;
+      position: relative;
+    }
+
+    .cell-gutter {
+      position: absolute;
+      left: -28px;
+      top: 0;
+      width: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      opacity: 0.6;
+      transition: opacity 0.15s;
+    }
+
+    .cell:hover .cell-gutter,
+    .cell:focus-within .cell-gutter {
+      opacity: 1;
+    }
+
+    .cell-number {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .cell-status {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    .cell-status.pending {
+      background: var(--warning);
+    }
+
+    .cell-status.error {
+      background: var(--error);
+    }
+
+    /* Status with accessible label */
+    .cell-status[aria-label] {
+      position: relative;
+    }
+
+    .cell-input {
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .cell-input:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    .input-header {
+      display: flex;
+      align-items: center;
+      padding: 8px 14px;
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border-subtle);
+      gap: 10px;
+    }
+
+    .input-type {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .input-mode {
+      font-size: 11px;
+      color: var(--accent-text);
+      margin-left: auto;
+      font-weight: 500;
+    }
+
+    .latex-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      padding: 14px 18px;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 15px;
+      outline: none;
+      resize: none;
+      min-height: 52px;
+    }
+
+    .latex-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .cell-output {
+      margin-top: 10px;
+    }
+
+    .output-rendered {
+      padding: 18px 22px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .output-rendered .katex {
+      font-size: 1.35em;
+    }
+
+    .output-steps {
+      margin-top: 10px;
+    }
+
+    .step {
+      display: flex;
+      gap: 14px;
+      padding: 10px 14px;
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      margin-bottom: 6px;
+      border-left: 3px solid var(--border);
+      transition: border-color 0.15s;
+      align-items: baseline;
+    }
+
+    .step:hover,
+    .step:focus-within {
+      border-left-color: var(--accent);
+    }
+
+    .step-number {
+      font-size: 12px;
+      color: var(--text-muted);
+      min-width: 24px;
+      font-weight: 600;
+    }
+
+    .step-rule {
+      font-size: 12px;
+      color: var(--math-secondary);
+      min-width: 130px;
+      font-weight: 500;
+    }
+
+    .step-expr {
+      flex: 1;
+    }
+
+    .step-expr .katex {
+      font-size: 1em;
+    }
+
+    /* Output tabs */
+    .output-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+
+    .output-tab {
+      padding: 6px 12px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.15s;
+      font-weight: 500;
+    }
+
+    .output-tab:hover {
+      color: var(--text-secondary);
+      background: var(--bg-hover);
+    }
+
+    .output-tab:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .output-tab.active {
+      color: var(--text-primary);
+      background: var(--bg-tertiary);
+      border-color: var(--border);
+    }
+
+    /* Graph panel */
+    .graph-panel {
+      padding: 18px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      display: none;
+    }
+
+    .graph-panel.visible {
+      display: block;
+    }
+
+    .graph-canvas {
+      width: 100%;
+      height: 200px;
+      background: var(--bg-primary);
+      border-radius: 6px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .graph-grid {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(var(--border-subtle) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    .graph-axes {
+      position: absolute;
+      inset: 0;
+    }
+
+    .graph-axis-x {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 1px;
+      background: var(--text-muted);
+    }
+
+    .graph-axis-y {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 1px;
+      background: var(--text-muted);
+    }
+
+    .graph-curve {
+      position: absolute;
+      inset: 0;
+    }
+
+    .graph-curve svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .graph-curve path {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 2.5;
+    }
+
+    /* Right panel */
+    .panel-right {
+      background: var(--bg-secondary);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-tab {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s;
+      border-bottom: 2px solid transparent;
+      font-weight: 500;
+    }
+
+    .panel-tab:hover {
+      color: var(--text-secondary);
+      background: var(--bg-hover);
+    }
+
+    .panel-tab:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+    }
+
+    .panel-tab.active {
+      color: var(--text-primary);
+      border-bottom-color: var(--accent);
+    }
+
+    .panel-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+    }
+
+    .info-section {
+      margin-bottom: 20px;
+    }
+
+    .info-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .info-value {
+      font-size: 13px;
+      color: var(--text-secondary);
+      padding: 10px 12px;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+    }
+
+    .info-value .katex {
+      font-size: 1.1em;
+    }
+
+    .properties-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .property {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      padding: 8px 12px;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+      align-items: center;
+    }
+
+    .property-name {
+      color: var(--text-secondary);
+    }
+
+    .property-value {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .property-value.true {
+      color: var(--success);
+    }
+
+    .property-value.false {
+      color: var(--error);
+    }
+
+    .transform-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .transform-btn {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: var(--font-mono);
+    }
+
+    .transform-btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+
+    .transform-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* Footer */
+    .footer {
+      grid-column: 1 / -1;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      font-size: 12px;
+      color: var(--text-muted);
+      gap: 20px;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    .keybind-hint {
+      margin-left: auto;
+      display: flex;
+      gap: 20px;
+    }
+
+    .keybind {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 5px;
+      border: 2px solid var(--bg-secondary);
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+
+    /* KaTeX overrides */
+    .katex {
+      font-size: 1.15em;
+      color: var(--text-primary);
+    }
+
+    .katex .mord.text {
+      font-family: var(--font-serif);
+    }
+
+    /* Animation - reduced motion support */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .cell-status.pending {
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .cell-status.pending {
+        animation: none;
+      }
+    }
+
+    /* Focus states */
+    *:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* Visually hidden for screen readers */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1200px) {
+      .app {
+        grid-template-columns: 220px 1fr 260px;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: 48px 1fr 36px;
+      }
+      
+      .sidebar, .panel-right {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="#main-workspace" class="skip-link">Skip to main content</a>
+  
+  <div class="app">
+    <!-- Header -->
+    <header class="header" role="banner">
+      <div class="logo">
+        <span class="logo-symbol" aria-hidden="true">ℳ</span>
+        <span>athesis</span>
+      </div>
+      
+      <div class="command-palette">
+        <span class="command-icon" aria-hidden="true">⌘</span>
+        <input 
+          type="text" 
+          class="command-input" 
+          placeholder="Command or expression... (Ctrl+K)"
+          aria-label="Command palette"
+        >
+      </div>
+      
+      <div class="header-actions">
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+          <span aria-hidden="true">◐</span>
+          <span>Theme</span>
+        </button>
+        <button class="header-btn" aria-label="Create branch">
+          <span aria-hidden="true">⎇</span> Branch
+        </button>
+        <button class="header-btn" aria-label="Export workspace">
+          <span aria-hidden="true">↓</span> Export
+        </button>
+        <button class="header-btn" aria-label="Help">
+          <kbd class="kbd">?</kbd> Help
+        </button>
+      </div>
+    </header>
+
+    <!-- Left Sidebar -->
+    <aside class="sidebar" aria-label="Environment and history">
+      <div class="sidebar-section">
+        <h2 class="sidebar-title">Environment</h2>
+        <div class="env-list" role="list">
+          <div class="env-item active" role="listitem" tabindex="0">
+            <span class="env-symbol" aria-hidden="true">f</span>
+            <span class="env-name">f(x)</span>
+            <span class="env-value">x³ - 2x + 1</span>
+          </div>
+          <div class="env-item" role="listitem" tabindex="0">
+            <span class="env-symbol" aria-hidden="true">g</span>
+            <span class="env-name">g(x)</span>
+            <span class="env-value">sin(x)/x</span>
+          </div>
+          <div class="env-item" role="listitem" tabindex="0">
+            <span class="env-symbol" style="color: var(--math-tertiary)" aria-hidden="true">α</span>
+            <span class="env-name">alpha</span>
+            <span class="env-value">0.5</span>
+          </div>
+          <div class="env-item" role="listitem" tabindex="0">
+            <span class="env-symbol" style="color: var(--math-secondary)" aria-hidden="true">I</span>
+            <span class="env-name">result</span>
+            <span class="env-value">√π/2</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h2 class="sidebar-title">Assumptions</h2>
+        <div class="assumptions-list" role="list">
+          <div class="assumption" role="listitem">
+            <button class="assumption-toggle checked" aria-pressed="true" aria-label="x is in real numbers"></button>
+            <span>x ∈ ℝ</span>
+          </div>
+          <div class="assumption" role="listitem">
+            <button class="assumption-toggle checked" aria-pressed="true" aria-label="x is greater than zero"></button>
+            <span>x > 0</span>
+          </div>
+          <div class="assumption" role="listitem">
+            <button class="assumption-toggle" aria-pressed="false" aria-label="x is in integers"></button>
+            <span>x ∈ ℤ</span>
+          </div>
+          <div class="assumption" role="listitem">
+            <button class="assumption-toggle checked" aria-pressed="true" aria-label="Continuity assumed"></button>
+            <span>Continuous</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section" style="border-bottom: none;">
+        <h2 class="sidebar-title">History</h2>
+      </div>
+      <nav class="history-list" aria-label="Computation history">
+        <div class="history-item" tabindex="0" role="button">
+          <div class="history-time">14:23</div>
+          <div class="history-expr">factor(f)</div>
+        </div>
+        <div class="history-item branch" tabindex="0" role="button">
+          <div class="history-time">14:21</div>
+          <div class="history-expr">⎇ assume x ∈ ℂ</div>
+        </div>
+        <div class="history-item" tabindex="0" role="button">
+          <div class="history-time">14:19</div>
+          <div class="history-expr">diff(f, x)</div>
+        </div>
+        <div class="history-item" tabindex="0" role="button">
+          <div class="history-time">14:15</div>
+          <div class="history-expr">f := x³ - 2x + 1</div>
+        </div>
+        <div class="history-item" tabindex="0" role="button">
+          <div class="history-time">14:12</div>
+          <div class="history-expr">∫ e^{-x²} dx</div>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="workspace" id="main-workspace" role="main">
+      <div class="cells">
+        <!-- Cell 1: Definition -->
+        <article class="cell" aria-label="Cell 1">
+          <div class="cell-gutter" aria-hidden="true">
+            <span class="cell-number">[1]</span>
+            <span class="cell-status" aria-label="Evaluated successfully"></span>
+          </div>
+          <div class="cell-input">
+            <div class="input-header">
+              <span class="input-type">Define</span>
+              <span class="input-mode">LaTeX</span>
+            </div>
+            <label class="sr-only" for="cell1-input">LaTeX expression for cell 1</label>
+            <textarea id="cell1-input" class="latex-input" rows="1">f := x^3 - 2x + 1</textarea>
+          </div>
+          <div class="cell-output" aria-live="polite">
+            <div class="output-rendered" id="output1"></div>
+          </div>
+        </article>
+
+        <!-- Cell 2: Integral with steps -->
+        <article class="cell" aria-label="Cell 2">
+          <div class="cell-gutter" aria-hidden="true">
+            <span class="cell-number">[2]</span>
+            <span class="cell-status"></span>
+          </div>
+          <div class="cell-input">
+            <div class="input-header">
+              <span class="input-type">Evaluate</span>
+              <span class="input-mode">LaTeX</span>
+            </div>
+            <label class="sr-only" for="cell2-input">LaTeX expression for cell 2</label>
+            <textarea id="cell2-input" class="latex-input" rows="1">\int_0^\infty e^{-x^2} dx</textarea>
+          </div>
+          <div class="cell-output">
+            <div class="output-tabs" role="tablist">
+              <button class="output-tab active" role="tab" aria-selected="true">Result</button>
+              <button class="output-tab" role="tab" aria-selected="false">Steps</button>
+              <button class="output-tab" role="tab" aria-selected="false">Graph</button>
+            </div>
+            <div class="output-rendered" id="output2" role="tabpanel"></div>
+            <div class="output-steps" aria-label="Derivation steps">
+              <div class="step">
+                <span class="step-number">①</span>
+                <span class="step-rule">Substitution</span>
+                <span class="step-expr" id="step1"></span>
+              </div>
+              <div class="step">
+                <span class="step-number">②</span>
+                <span class="step-rule">Gamma function</span>
+                <span class="step-expr" id="step2"></span>
+              </div>
+              <div class="step">
+                <span class="step-number">③</span>
+                <span class="step-rule">Known value</span>
+                <span class="step-expr" id="step3"></span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Cell 3: Differentiation -->
+        <article class="cell" aria-label="Cell 3">
+          <div class="cell-gutter" aria-hidden="true">
+            <span class="cell-number">[3]</span>
+            <span class="cell-status"></span>
+          </div>
+          <div class="cell-input">
+            <div class="input-header">
+              <span class="input-type">Transform</span>
+              <span class="input-mode">LaTeX</span>
+            </div>
+            <label class="sr-only" for="cell3-input">LaTeX expression for cell 3</label>
+            <textarea id="cell3-input" class="latex-input" rows="1">\frac{d}{dx} f(x)</textarea>
+          </div>
+          <div class="cell-output">
+            <div class="output-rendered" id="output3"></div>
+            <div class="graph-panel visible" aria-label="Graph of derivative">
+              <div class="graph-canvas">
+                <div class="graph-grid" aria-hidden="true"></div>
+                <div class="graph-axes" aria-hidden="true">
+                  <div class="graph-axis-x"></div>
+                  <div class="graph-axis-y"></div>
+                </div>
+                <div class="graph-curve">
+                  <svg viewBox="0 0 400 200" preserveAspectRatio="none" role="img" aria-label="Graph showing parabola 3x squared minus 2">
+                    <path d="M 0 180 Q 50 180, 80 150 T 150 100 T 200 80 T 250 100 T 300 150 T 350 180 L 400 200" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Cell 4: Active input -->
+        <article class="cell" aria-label="Cell 4 - new input">
+          <div class="cell-gutter" aria-hidden="true">
+            <span class="cell-number">[4]</span>
+            <span class="cell-status pending" aria-label="Awaiting input"></span>
+          </div>
+          <div class="cell-input">
+            <div class="input-header">
+              <span class="input-type">Input</span>
+              <span class="input-mode">LaTeX</span>
+            </div>
+            <label class="sr-only" for="cell4-input">Enter new LaTeX expression</label>
+            <textarea id="cell4-input" class="latex-input" rows="1" placeholder="Enter expression..." autofocus></textarea>
+          </div>
+        </article>
+      </div>
+    </main>
+
+    <!-- Right Panel -->
+    <aside class="panel-right" aria-label="Inspector panel">
+      <div class="panel-tabs" role="tablist">
+        <button class="panel-tab active" role="tab" aria-selected="true">Inspector</button>
+        <button class="panel-tab" role="tab" aria-selected="false">Transforms</button>
+        <button class="panel-tab" role="tab" aria-selected="false">Docs</button>
+      </div>
+      <div class="panel-content" role="tabpanel">
+        <section class="info-section">
+          <h3 class="info-label">Selected Expression</h3>
+          <div class="info-value" id="selected-expr"></div>
+        </section>
+
+        <section class="info-section">
+          <h3 class="info-label">Properties</h3>
+          <dl class="properties-list">
+            <div class="property">
+              <dt class="property-name">Domain</dt>
+              <dd class="property-value">ℝ</dd>
+            </div>
+            <div class="property">
+              <dt class="property-name">Continuous</dt>
+              <dd class="property-value true">✓ Yes</dd>
+            </div>
+            <div class="property">
+              <dt class="property-name">Differentiable</dt>
+              <dd class="property-value true">✓ Yes</dd>
+            </div>
+            <div class="property">
+              <dt class="property-name">Polynomial</dt>
+              <dd class="property-value true">✓ Yes</dd>
+            </div>
+            <div class="property">
+              <dt class="property-name">Degree</dt>
+              <dd class="property-value">3</dd>
+            </div>
+            <div class="property">
+              <dt class="property-name">Roots (real)</dt>
+              <dd class="property-value">1</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="info-section">
+          <h3 class="info-label">Quick Transforms</h3>
+          <div class="transform-list" role="group" aria-label="Transform operations">
+            <button class="transform-btn">factor</button>
+            <button class="transform-btn">expand</button>
+            <button class="transform-btn">simplify</button>
+            <button class="transform-btn">diff</button>
+            <button class="transform-btn">integrate</button>
+            <button class="transform-btn">roots</button>
+            <button class="transform-btn">series</button>
+            <button class="transform-btn">limit</button>
+            <button class="transform-btn">eval</button>
+          </div>
+        </section>
+
+        <section class="info-section">
+          <h3 class="info-label">Related</h3>
+          <dl class="properties-list">
+            <div class="property">
+              <dt class="property-name">f'(x)</dt>
+              <dd class="property-value" id="related1"></dd>
+            </div>
+            <div class="property">
+              <dt class="property-name">∫f dx</dt>
+              <dd class="property-value" id="related2"></dd>
+            </div>
+          </dl>
+        </section>
+      </div>
+    </aside>
+
+    <!-- Footer -->
+    <footer class="footer" role="contentinfo">
+      <div class="status-indicator">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span>Ready</span>
+      </div>
+      <span>Domain: ℝ</span>
+      <span>Precision: exact</span>
+      <div class="keybind-hint" aria-label="Keyboard shortcuts">
+        <span class="keybind"><kbd class="kbd">⇧↵</kbd> Execute</span>
+        <span class="keybind"><kbd class="kbd">⌃K</kbd> Command</span>
+        <span class="keybind"><kbd class="kbd">⌃/</kbd> Toggle steps</span>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Theme management
+    const themes = ['light', 'dark', 'high-contrast'];
+    let currentTheme = 0;
+
+    function setTheme(theme) {
+      if (theme === 'light') {
+        document.documentElement.removeAttribute('data-theme');
+      } else {
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+      localStorage.setItem('theme', theme);
+    }
+
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      currentTheme = themes.indexOf(savedTheme);
+      if (currentTheme === -1) currentTheme = 0;
+      setTheme(savedTheme);
+    }
+
+    // Theme toggle
+    document.getElementById('theme-toggle').addEventListener('click', function() {
+      currentTheme = (currentTheme + 1) % themes.length;
+      setTheme(themes[currentTheme]);
+    });
+
+    // Render KaTeX expressions
+    function render(id, latex) {
+      const el = document.getElementById(id);
+      if (el) {
+        katex.render(latex, el, { 
+          throwOnError: false,
+          displayMode: true 
+        });
+      }
+    }
+
+    function renderInline(id, latex) {
+      const el = document.getElementById(id);
+      if (el) {
+        katex.render(latex, el, { 
+          throwOnError: false,
+          displayMode: false 
+        });
+      }
+    }
+
+    // Render all outputs
+    render('output1', 'f(x) = x^3 - 2x + 1');
+    render('output2', '\\int_0^\\infty e^{-x^2} \\, dx = \\frac{\\sqrt{\\pi}}{2}');
+    render('output3', "f'(x) = 3x^2 - 2");
+    
+    // Steps
+    renderInline('step1', 'u = x^2 \\implies \\frac{1}{2}\\int_0^\\infty u^{-1/2} e^{-u} \\, du');
+    renderInline('step2', '= \\frac{1}{2} \\Gamma\\left(\\frac{1}{2}\\right)');
+    renderInline('step3', '= \\frac{1}{2} \\cdot \\sqrt{\\pi} = \\frac{\\sqrt{\\pi}}{2}');
+    
+    // Inspector
+    render('selected-expr', 'f(x) = x^3 - 2x + 1');
+    renderInline('related1', '3x^2 - 2');
+    renderInline('related2', '\\frac{x^4}{4} - x^2 + x');
+
+    // Tab switching with proper ARIA
+    function setupTabs(container) {
+      const tabs = container.querySelectorAll('[role="tab"]');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          tabs.forEach(t => {
+            t.classList.remove('active');
+            t.setAttribute('aria-selected', 'false');
+          });
+          this.classList.add('active');
+          this.setAttribute('aria-selected', 'true');
+        });
+      });
+    }
+
+    document.querySelectorAll('.output-tabs, .panel-tabs').forEach(setupTabs);
+
+    // Assumption toggles
+    document.querySelectorAll('.assumption-toggle').forEach(toggle => {
+      toggle.addEventListener('click', function() {
+        const isPressed = this.getAttribute('aria-pressed') === 'true';
+        this.setAttribute('aria-pressed', !isPressed);
+        this.classList.toggle('checked');
+      });
+    });
+
+    // Environment selection
+    document.querySelectorAll('.env-item').forEach(item => {
+      item.addEventListener('click', function() {
+        document.querySelectorAll('.env-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+      });
+      
+      item.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.click();
+        }
+      });
+    });
+
+    // History items
+    document.querySelectorAll('.history-item').forEach(item => {
+      item.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.click();
+        }
+      });
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      // Ctrl+K for command palette
+      if (e.ctrlKey && e.key === 'k') {
+        e.preventDefault();
+        document.querySelector('.command-input').focus();
+      }
+    });
+
+    // Live LaTeX preview
+    document.querySelectorAll('.latex-input').forEach(input => {
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && e.shiftKey) {
+          e.preventDefault();
+          console.log('Execute:', this.value);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
